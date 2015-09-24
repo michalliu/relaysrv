@@ -13,9 +13,9 @@ import (
 	"path/filepath"
 	"time"
 
-	syncthingprotocol "github.com/syncthing/protocol"
-	"github.com/syncthing/relaysrv/client"
-	"github.com/syncthing/relaysrv/protocol"
+	syncthingprotocol "github.com/syncthing/syncthing/lib/protocol"
+	"github.com/syncthing/syncthing/lib/relay/client"
+	"github.com/syncthing/syncthing/lib/relay/protocol"
 )
 
 func main() {
@@ -23,10 +23,11 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	var connect, relay, dir string
-	var join bool
+	var join, test bool
 
 	flag.StringVar(&connect, "connect", "", "Device ID to which to connect to")
 	flag.BoolVar(&join, "join", false, "Join relay")
+	flag.BoolVar(&test, "test", false, "Generic relay test")
 	flag.StringVar(&relay, "relay", "relay://127.0.0.1:22067", "Relay address")
 	flag.StringVar(&dir, "keys", ".", "Directory where cert.pem and key.pem is stored")
 
@@ -99,6 +100,12 @@ func main() {
 		log.Println("Joined", conn.RemoteAddr(), conn.LocalAddr())
 		connectToStdio(stdin, conn)
 		log.Println("Finished", conn.RemoteAddr(), conn.LocalAddr())
+	} else if test {
+		if client.TestRelay(uri, []tls.Certificate{cert}) {
+			log.Println("OK")
+		} else {
+			log.Println("FAIL")
+		}
 	} else {
 		log.Fatal("Requires either join or connect")
 	}
